@@ -13,38 +13,37 @@ interface ClickEffect {
   y: number;
 }
 
-const Homepage: React.FC<HomepageProps> = ({ money, setMoney, totalIncomePerHour }) => {
+const Homepage: React.FC<HomepageProps> = ({
+  money,
+  setMoney,
+  totalIncomePerHour,
+}) => {
   const [showConfetti, setShowConfetti] = useState<boolean>(false);
   const [showCongratsText, setShowCongratsText] = useState<boolean>(false);
   const [maxLevelReached, setMaxLevelReached] = useState<boolean>(() => {
-    return localStorage.getItem('maxLevelReached') === 'true';
+    return localStorage.getItem("maxLevelReached") === "true";
   });
   const [clickEffects, setClickEffects] = useState<ClickEffect[]>([]);
   const [boostLevel, setBoostLevel] = useState<number>(() => {
-    const savedBoostLevel = localStorage.getItem('boostLevel');
+    const savedBoostLevel = localStorage.getItem("boostLevel");
     return savedBoostLevel ? parseInt(savedBoostLevel, 10) : 0;
   });
 
-  const boostPrices = [500, 2000, 10000, 50000, 100000];
+  const boostPrices = [500, 1000, 5000, 15000, 30000];
   const boostMultipliers = [1, 5, 10, 15, 20, 25];
 
   const avatars = [
-    require("../assets/images/cuc1.jpg"),
-    require("../assets/images/cuc2.jpg"),
-    require("../assets/images/cuc3.jpg"),
-    require("../assets/images/cuc4.jpg"),
-    require("../assets/images/cuc5.jpg"),
-    require("../assets/images/cuc6.jpg")
+    require("../assets/images/cat1.png"),
+    require("../assets/images/cat2.png"),
+    require("../assets/images/cat3.png"),
+    require("../assets/images/cat4.png"),
+    require("../assets/images/cat5.png"),
+    require("../assets/images/cat6.png"),
   ];
 
-  const levelThresholds = [
-    10000,    
-    50000,    
-    200000,   
-    500000,   
-    1000000,   
-    10000000   
-  ];
+  const rocket = require("../assets/images/rocket.png");
+
+  const levelThresholds = [500, 2000, 5000, 15000, 50000, 100000];
 
   const moneyRef = useRef<number>(money);
   moneyRef.current = money;
@@ -57,7 +56,7 @@ const Homepage: React.FC<HomepageProps> = ({ money, setMoney, totalIncomePerHour
         const currentMoney = moneyRef.current;
         const newMoney = currentMoney + incomePerSecond;
         setMoney(Number(newMoney.toFixed(2)));
-        localStorage.setItem('money', newMoney.toFixed(2));
+        localStorage.setItem("money", newMoney.toFixed(2));
       }, 1000);
 
       return () => clearInterval(timer);
@@ -65,12 +64,17 @@ const Homepage: React.FC<HomepageProps> = ({ money, setMoney, totalIncomePerHour
   }, [totalIncomePerHour, setMoney]);
 
   useEffect(() => {
-    const currentLevel = levelThresholds.findIndex(threshold => money < threshold);
+    const currentLevel = levelThresholds.findIndex(
+      (threshold) => money < threshold
+    );
 
     if (currentLevel === -1 && !maxLevelReached) {
       setMaxLevelReached(true);
-      localStorage.setItem('maxLevelReached', 'true');
-    } else if (currentLevel !== -1 && Math.floor(money / levelThresholds[currentLevel]) >= 1) {
+      localStorage.setItem("maxLevelReached", "true");
+    } else if (
+      currentLevel !== -1 &&
+      Math.floor(money / levelThresholds[currentLevel]) >= 1
+    ) {
       setShowConfetti(true);
       setShowCongratsText(true);
       setTimeout(() => {
@@ -83,7 +87,7 @@ const Homepage: React.FC<HomepageProps> = ({ money, setMoney, totalIncomePerHour
   const handleClick = (e: React.MouseEvent) => {
     const newMoney: number = money + boostMultipliers[boostLevel];
     setMoney(newMoney);
-    localStorage.setItem('money', newMoney.toString());
+    localStorage.setItem("money", newMoney.toString());
 
     const { clientX, clientY } = e;
     const newClickEffect: ClickEffect = {
@@ -94,7 +98,9 @@ const Homepage: React.FC<HomepageProps> = ({ money, setMoney, totalIncomePerHour
     setClickEffects([...clickEffects, newClickEffect]);
 
     setTimeout(() => {
-      setClickEffects((effects) => effects.filter(effect => effect.id !== newClickEffect.id));
+      setClickEffects((effects) =>
+        effects.filter((effect) => effect.id !== newClickEffect.id)
+      );
     }, 1000);
   };
 
@@ -102,11 +108,11 @@ const Homepage: React.FC<HomepageProps> = ({ money, setMoney, totalIncomePerHour
     if (boostLevel < 5 && money >= boostPrices[boostLevel]) {
       const newMoney = money - boostPrices[boostLevel];
       setMoney(newMoney);
-      localStorage.setItem('money', newMoney.toString());
+      localStorage.setItem("money", newMoney.toString());
 
       const newBoostLevel = boostLevel + 1;
       setBoostLevel(newBoostLevel);
-      localStorage.setItem('boostLevel', newBoostLevel.toString());
+      localStorage.setItem("boostLevel", newBoostLevel.toString());
     } else if (boostLevel >= 5) {
       alert("You have reached the maximum boost level!");
     } else {
@@ -115,7 +121,9 @@ const Homepage: React.FC<HomepageProps> = ({ money, setMoney, totalIncomePerHour
   };
 
   const getAvatar = () => {
-    const currentLevel = levelThresholds.findIndex(threshold => money < threshold);
+    const currentLevel = levelThresholds.findIndex(
+      (threshold) => money < threshold
+    );
     const index = currentLevel === -1 ? 5 : currentLevel;
     return avatars[index];
   };
@@ -141,16 +149,20 @@ const Homepage: React.FC<HomepageProps> = ({ money, setMoney, totalIncomePerHour
         <div className="circle-avatar-image" onClick={handleClick}>
           <img src={getAvatar()} alt="avatar" className="def-avatar" />
         </div>
-        <button className="boost-button" onClick={handleBoostUpgrade}>
-          Boost ({boostLevel}/5) - {boostLevel < 5 ? boostPrices[boostLevel] : "Max"} $
-        </button>
+        <div className="boost-block">
+          <img src={rocket} alt="rocket" />
+          <button className="boost-button" onClick={handleBoostUpgrade}>
+            Boost ({boostLevel}/5) -{" "}
+            {boostLevel < 5 ? boostPrices[boostLevel] : "Max"} $
+          </button>
+        </div>
       </div>
       <div className="footer-block">
         {maxLevelReached && (
           <div className="final-message">
-            Congratulations, you've successfully unlocked all levels! 
-            More levels will be added in the future, so keep saving money 
-            and get ready for new challenges!
+            Congratulations, you've successfully unlocked all levels! More
+            levels will be added in the future, so keep saving money and get
+            ready for new challenges!
           </div>
         )}
       </div>
