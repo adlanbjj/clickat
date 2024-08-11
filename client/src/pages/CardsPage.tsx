@@ -8,19 +8,20 @@ interface CardsPageProps {
 }
 
 const cardsData = [
-  { id: 1, name: "Card 1", incomePerHour: 10, cost: 100 },
-  { id: 2, name: "Card 2", incomePerHour: 20, cost: 200 },
-  { id: 3, name: "Card 3", incomePerHour: 30, cost: 300 },
-  { id: 4, name: "Card 4", incomePerHour: 40, cost: 400 },
-  { id: 5, name: "Card 5", incomePerHour: 50, cost: 500 },
+  { id: 1, name: "Card 1", incomePerHour: 5000, cost: 1000 },
+  { id: 2, name: "Card 2", incomePerHour: 15000, cost: 5000 },
+  { id: 3, name: "Card 3", incomePerHour: 30000, cost: 20000 },
+  { id: 4, name: "Card 4", incomePerHour: 10000, cost: 50000 },
+  { id: 5, name: "Card 5", incomePerHour: 1000000, cost: 100000 },
 ];
 
 const CardsPage: React.FC<CardsPageProps> = ({ money, setMoney, totalIncomePerHour, setTotalIncomePerHour }) => {
 
   const handleBuyCard = (cardId: number, cost: number, incomePerHour: number) => {
     if (money >= cost) {
-      setMoney(money - cost);
-      setTotalIncomePerHour(totalIncomePerHour + incomePerHour);
+      const newMoney = money - cost;
+      setMoney(newMoney);
+      setTotalIncomePerHour(incomePerHour);
     } else {
       alert("Not enough money to buy this card.");
     }
@@ -31,8 +32,8 @@ const CardsPage: React.FC<CardsPageProps> = ({ money, setMoney, totalIncomePerHo
       {cardsData.map((card) => (
         <div key={card.id} className="card">
           <h3>{card.name}</h3>
-          <p>Income per Hour: {card.incomePerHour}</p>
-          <p>Cost: {card.cost}</p>
+          <p>Per hour: {card.incomePerHour} $</p>
+          <p>Cost: {card.cost} $</p>
           <button
             onClick={() => handleBuyCard(card.id, card.cost, card.incomePerHour)}
           >

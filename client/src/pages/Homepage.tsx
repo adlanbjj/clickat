@@ -20,6 +20,13 @@ const Homepage: React.FC<HomepageProps> = ({ money, setMoney, totalIncomePerHour
     return localStorage.getItem('maxLevelReached') === 'true';
   });
   const [clickEffects, setClickEffects] = useState<ClickEffect[]>([]);
+  const [boostLevel, setBoostLevel] = useState<number>(() => {
+    const savedBoostLevel = localStorage.getItem('boostLevel');
+    return savedBoostLevel ? parseInt(savedBoostLevel, 10) : 0;
+  });
+
+  const boostPrices = [500, 2000, 10000, 50000, 100000];
+  const boostMultipliers = [1, 5, 10, 15, 20, 25];
 
   const avatars = [
     require("../assets/images/cuc1.jpg"),
@@ -28,6 +35,15 @@ const Homepage: React.FC<HomepageProps> = ({ money, setMoney, totalIncomePerHour
     require("../assets/images/cuc4.jpg"),
     require("../assets/images/cuc5.jpg"),
     require("../assets/images/cuc6.jpg")
+  ];
+
+  const levelThresholds = [
+    10000,    
+    50000,    
+    200000,   
+    500000,   
+    1000000,   
+    10000000   
   ];
 
   const moneyRef = useRef<number>(money);
@@ -49,14 +65,23 @@ const Homepage: React.FC<HomepageProps> = ({ money, setMoney, totalIncomePerHour
   }, [totalIncomePerHour, setMoney]);
 
   useEffect(() => {
-    if (Math.floor(money / 10) >= 6 && !maxLevelReached) {
+    const currentLevel = levelThresholds.findIndex(threshold => money < threshold);
+
+    if (currentLevel === -1 && !maxLevelReached) {
       setMaxLevelReached(true);
       localStorage.setItem('maxLevelReached', 'true');
+    } else if (currentLevel !== -1 && Math.floor(money / levelThresholds[currentLevel]) >= 1) {
+      setShowConfetti(true);
+      setShowCongratsText(true);
+      setTimeout(() => {
+        setShowConfetti(false);
+        setShowCongratsText(false);
+      }, 3000);
     }
-  }, [money, maxLevelReached]);
+  }, [money, maxLevelReached, levelThresholds]);
 
   const handleClick = (e: React.MouseEvent) => {
-    const newMoney: number = money + 1;
+    const newMoney: number = money + boostMultipliers[boostLevel];
     setMoney(newMoney);
     localStorage.setItem('money', newMoney.toString());
 
@@ -71,31 +96,32 @@ const Homepage: React.FC<HomepageProps> = ({ money, setMoney, totalIncomePerHour
     setTimeout(() => {
       setClickEffects((effects) => effects.filter(effect => effect.id !== newClickEffect.id));
     }, 1000);
+  };
 
-    if (newMoney % 10 === 0 && Math.floor(newMoney / 10) < 6) {
-      setShowConfetti(true);
-      setShowCongratsText(true);
-      setTimeout(() => {
-        setShowConfetti(false);
-        setShowCongratsText(false);
-      }, 3000);
+  const handleBoostUpgrade = () => {
+    if (boostLevel < 5 && money >= boostPrices[boostLevel]) {
+      const newMoney = money - boostPrices[boostLevel];
+      setMoney(newMoney);
+      localStorage.setItem('money', newMoney.toString());
+
+      const newBoostLevel = boostLevel + 1;
+      setBoostLevel(newBoostLevel);
+      localStorage.setItem('boostLevel', newBoostLevel.toString());
+    } else if (boostLevel >= 5) {
+      alert("You have reached the maximum boost level!");
+    } else {
+      alert("Not enough money to upgrade!");
     }
   };
 
   const getAvatar = () => {
-    const index = maxLevelReached ? 5 : Math.floor(money / 10);
+    const currentLevel = levelThresholds.findIndex(threshold => money < threshold);
+    const index = currentLevel === -1 ? 5 : currentLevel;
     return avatars[index];
   };
 
-  const getFilledCircles = () => {
-    const filledCount = maxLevelReached ? 6 : Math.floor(money / 10);
-    return Array.from({ length: 6 }, (_, index) => index < filledCount);
-  };
-
-  const filledCount = maxLevelReached ? 6 : Math.floor(money / 10);
-
   return (
-    <div className="home-container" onClick={handleClick}>
+    <div className="home-container">
       {showConfetti && <Confetti />}
       {showCongratsText && (
         <div className="congrats-text">
@@ -108,23 +134,16 @@ const Homepage: React.FC<HomepageProps> = ({ money, setMoney, totalIncomePerHour
           className="click-effect"
           style={{ top: effect.y, left: effect.x }}
         >
-          +1
+          +{boostMultipliers[boostLevel]}
         </div>
       ))}
-      <div className="header-block">
-        <div className="steps-cont">
-          <span>{filledCount}/6</span>
-
-          {getFilledCircles().map((filled, index) => (
-            <div key={index} className={`step ${filled ? 'filled' : ''}`}></div>
-          ))}
-        </div>
-        Money: {Math.floor(money)}
-      </div>
       <div className="body-block">
-        <div className="circle-avatar-image">
+        <div className="circle-avatar-image" onClick={handleClick}>
           <img src={getAvatar()} alt="avatar" className="def-avatar" />
         </div>
+        <button className="boost-button" onClick={handleBoostUpgrade}>
+          Boost ({boostLevel}/5) - {boostLevel < 5 ? boostPrices[boostLevel] : "Max"} $
+        </button>
       </div>
       <div className="footer-block">
         {maxLevelReached && (
